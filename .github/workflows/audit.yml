@@ -1,0 +1,28 @@
+name: Audit Skills
+
+on: [push, pull_request]
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: runkids/setup-skillshare@v1
+        id: skillshare
+        with:
+          source: .
+          audit: true
+          audit-threshold: critical
+          audit-format: sarif
+          audit-output: skillshare-audit.sarif
+        continue-on-error: true # 非阻斷:誤報 CRITICAL 不讓 CI 變紅
+
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: skillshare-audit.sarif
+          category: skillshare-audit
